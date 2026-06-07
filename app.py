@@ -1,9 +1,10 @@
 import streamlit as st
 import requests
 import time
+import os  # <-- Adicione essa importação se não tiver
 
-# URL da API do Dev 2 (quando estiver rodando no Docker, mudaremos isso)
-API_URL = "http://localhost:8000/calcular"
+# Se o Railway der uma URL para a API, o código usa ela. Se não, usa o localhost.
+API_URL = os.getenv("API_URL", "http://localhost:8000") + "/calcular"
 
 # 1. Configuração do título da página
 st.set_page_config(page_title="Processamento Distribuído", page_icon="🎯")

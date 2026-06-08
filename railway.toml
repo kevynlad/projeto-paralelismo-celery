@@ -1,0 +1,31 @@
+# railway.toml — Configuração de deploy para o Railway.app
+# Documentação: https://docs.railway.app/reference/config-as-code
+
+[build]
+builder = "DOCKERFILE"
+
+# ================================================
+# SERVIÇO: API (FastAPI)
+# Crie um serviço no Railway apontando para este repo
+# e defina a variável de ambiente: SERVICE=api
+# ================================================
+# Comando padrão da API (usado quando SERVICE=api)
+# CMD no Dockerfile da pasta /api
+
+# ================================================
+# SERVIÇO: Worker (Celery)
+# Crie um segundo serviço no Railway apontando para
+# este repo e defina SERVICE=worker
+# ================================================
+
+# ================================================
+# SERVIÇO: Frontend (Streamlit)
+# Crie um terceiro serviço no Railway apontando para
+# este repo (Dockerfile raiz) e defina SERVICE=frontend
+# ================================================
+
+[deploy]
+healthcheckPath = "/"
+healthcheckTimeout = 300
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 3

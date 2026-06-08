@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  # =========================================
+  # 1. BROKER DE MENSAGENS - Redis
+  # =========================================
+  redis:
+    image: redis:7-alpine
+    container_name: redis_broker
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  # =========================================
+  # 2. BACKEND - FastAPI
+  # =========================================
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: fastapi_backend
+    ports:
+      - "8000:8000"
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - ./api:/app
+
+  # =========================================
+  # 3. WORKERS - Celery (escalável)
+  # Para testar com 4 workers: docker compose up --scale celery_worker=4
+  # Para testar com 1 worker:  docker compose up --scale celery_worker=1
+  # =========================================
+  celery_worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    command: celery -A tasks worker --loglevel=info --concurrency=1
+    environment:
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    deploy:
+      replicas: 4   # Padrão: 4 workers para demonstrar paralelismo
+
+  # =========================================
+  # 4. FRONTEND - Streamlit
+  # =========================================
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: streamlit_frontend
+    ports:
+      - "8501:8501"
+    environment:
+      - API_URL=http://api:8000
+    depends_on:
+      - api
